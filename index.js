@@ -23,6 +23,7 @@ async function run() {
     const userCollection = client.db("Solid_Tools_Corp").collection("all_users");
     const productCollection = client.db("Solid_Tools_Corp").collection("all_products");
     const reviewCollection = client.db("Solid_Tools_Corp").collection("all_reviews");
+    const orderCollection = client.db("Solid_Tools_Corp").collection("all_orders");
 
 
 // ******************************
@@ -107,6 +108,28 @@ async function run() {
     });
 
 
+    
+// ******************************
+//     orders 
+// ******************************
+
+// get all products
+    // http://localhost:5000/products
+    app.get("/orders", async (req, res) => {
+      const query = {};
+      const result = await orderCollection.find(query).toArray();
+      res.send({ message: "all orders loaded", result});
+    });
+
+    // create one product
+    // http://localhost:5000/order
+    app.post("/order", async (req, res) => {
+      const item = req.body;
+      const result = await orderCollection.insertOne(item);
+      res.send({ message: "order added", result});
+    });
+
+
 
 
 
@@ -126,7 +149,7 @@ async function run() {
 });
 
 // create one review
-// http://localhost:5000/item
+// http://localhost:5000/review
 app.post("/review", async (req, res) => {
   const review = req.body;
   const result = await reviewCollection.insertOne(review);
