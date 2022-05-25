@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require('jsonwebtoken');
 const app = express();
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -49,24 +50,56 @@ async function run() {
     // get all users
     // http://localhost:5000/users
     app.get("/users", verifyJWT, async (req, res) => {
-      const query = {};
-      const result = await userCollection.find(query).toArray();
-      res.send(result);
+      const userEmail = req.body.email;     
+      const decodedEmail = req.decoded.email;
+      if (userEmail === decodedEmail) {
+        const query = {};
+        const result = await userCollection.find(query).toArray();
+        res.send({success: true, result});
+      }
+      else {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
+
     });
 
     // create one user
     // http://localhost:5000/user/email
     app.put("/user/:email", async (req, res) => {
-      const user = req.body;
       const email = req.params.email;
       const filter = {email : email};
       const options = { upsert : true };
       const updateUser = {
-        $set : user,
+        $set : {email : email},
       }      
       const result = await userCollection.updateOne(filter, updateUser, options);
       const token = jwt.sign({email : email}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      // res.send({ success: true, result});
       res.send({ success: true, result, token});
+    });
+
+
+    // make an user Admin
+    // http://localhost:5000/admin/email
+    app.put("/admin/:email", async (req, res) => {      
+      const email = req.params.email;
+      const filter = {email : email};
+      const options = { upsert : true };
+      const updateUser = {
+        $set : {role : 'admin'},
+      }      
+      const result = await userCollection.updateOne(filter, updateUser, options);      
+      res.send({ success: true, result});
+    });
+
+
+    // check Admin
+    // http://localhost:5000/admin/email
+    app.get("/admin/:email", async (req, res) => {      
+      const email = req.params.email;      
+      const user = await userCollection.findOne({email : email}); 
+      const isAdmin = user.role === 'admin';  
+      res.send({ isAdmin: isAdmin});
     });
 
 
@@ -135,7 +168,7 @@ async function run() {
     app.get("/products", async (req, res) => {
       const query = {};
       const result = await productCollection.find(query).toArray();
-      res.send({ message: "all products loaded", result});
+      res.send(result);
     });
 
     // create one product
@@ -191,10 +224,10 @@ async function run() {
 // ******************************
 
  // http://localhost:5000/reviews
- app.get("/reviews", async (req, res) => {
+ app.get("/reviews", verifyJWT,async (req, res) => {
   const query = {};
   const result = await reviewCollection.find(query).toArray();
-  res.send({ message: "all reviews loaded", result});
+  res.send(result);
 });
 
 // create one review
