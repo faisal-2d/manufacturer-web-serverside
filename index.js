@@ -17,6 +17,22 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send({ message: 'UnAuthorized'});
+  }
+  const token = authHeader.split(' ')[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (error, decoded) {
+    if (error) {
+      return res.status(403).send({ message: 'Forbidden access' })
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
+
 async function run() {
   try {
     await client.connect();
@@ -32,11 +48,40 @@ async function run() {
 
     // get all users
     // http://localhost:5000/users
-    app.get("/users", async (req, res) => {
+    app.get("/users", verifyJWT, async (req, res) => {
       const query = {};
       const result = await userCollection.find(query).toArray();
       res.send(result);
     });
+
+    // create one user
+    // http://localhost:5000/user/email
+    app.put("/user/:email", async (req, res) => {
+      const user = req.body;
+      const email = req.params.email;
+      const filter = {email : email};
+      const options = { upsert : true };
+      const updateUser = {
+        $set : user,
+      }      
+      const result = await userCollection.updateOne(filter, updateUser, options);
+      const token = jwt.sign({email : email}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      res.send({ success: true, result, token});
+    });
+
+
+    // // create one user
+    // // http://localhost:5000/item
+    // app.post("/user", async (req, res) => {
+    //   const user = req.body;
+    //   const userEmail = {email : user.email};
+    //   const userExist = await userCollection.findOne(userEmail);
+    //   if(userExist){
+    //     return res.send({ message: "User Already Exist", userEmail});
+    //   }      
+    //   const result = await userCollection.insertOne(user);
+    //   res.send({ success: true, result});
+    // });
     
 
     // find one item by id
@@ -56,13 +101,7 @@ async function run() {
       res.send(result);
     });
 
-    // create one user
-    // http://localhost:5000/item
-    app.post("/user", async (req, res) => {
-      const user = req.body;      
-      const result = await userCollection.insertOne(user);
-      res.send({ message: "user added", result});
-    });
+    
     
 
     //update item
@@ -74,7 +113,7 @@ async function run() {
         $set: req.body,
       };
       const result = await warehouseCollection.updateOne(filter, updateItem);
-      res.send({message: "item updated"})
+      res.send({success: true, result})
     });
 
     // delete item
@@ -104,7 +143,7 @@ async function run() {
     app.post("/product", async (req, res) => {
       const item = req.body;
       const result = await productCollection.insertOne(item);
-      res.send({ message: "product added", result});
+      res.send({ success: true, result});
     });
 
 
@@ -113,20 +152,30 @@ async function run() {
 //     orders 
 // ******************************
 
-// get all products
-    // http://localhost:5000/products
+// get all orders
+    // http://localhost:5000/orders
     app.get("/orders", async (req, res) => {
       const query = {};
       const result = await orderCollection.find(query).toArray();
       res.send({ message: "all orders loaded", result});
     });
 
-    // create one product
+    
+    // get not shiped orders
+    // http://localhost:5000/order
+    app.post("/notshipedorders", async (req, res) => {
+      const query = {};
+      const notShiped = {isShiped : false};
+      const result = await orderCollection.find(notShiped).toArray();
+      res.send({ message: "all not shiped orders loaded", result});
+    });
+
+    // create one order
     // http://localhost:5000/order
     app.post("/order", async (req, res) => {
       const item = req.body;
       const result = await orderCollection.insertOne(item);
-      res.send({ message: "order added", result});
+      res.send({ success: true, result});
     });
 
 
@@ -166,9 +215,9 @@ run().catch(console.dir);
 
 // backend initialize
 app.get("/", (req, res) => {
-  res.send("welcome to warehouse");
+  res.send("welcome to Solid Tools Corp");
 });
 
 app.listen(port, () => {
-  console.log("listening port", port);
+  console.log("Solid Tools Corp is running on Port", port);
 });
