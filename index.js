@@ -50,18 +50,10 @@ async function run() {
 
     // get all users
     // http://localhost:5000/users
-    app.get("/users", verifyJWT, async (req, res) => {
-      const userEmail = req.body.email;     
-      const decodedEmail = req.decoded.email;
-      if (userEmail === decodedEmail) {
+    app.get("/users", async (req, res) => {
         const query = {};
         const result = await userCollection.find(query).toArray();
-        res.send({success: true, result});
-      }
-      else {
-        return res.status(403).send({ message: 'forbidden access' });
-      }
-
+        res.send(result);
     });
 
     // create one user
@@ -103,19 +95,6 @@ async function run() {
       res.send({ isAdmin: isAdmin});
     });
 
-
-    // // create one user
-    // // http://localhost:5000/item
-    // app.post("/user", async (req, res) => {
-    //   const user = req.body;
-    //   const userEmail = {email : user.email};
-    //   const userExist = await userCollection.findOne(userEmail);
-    //   if(userExist){
-    //     return res.send({ message: "User Already Exist", userEmail});
-    //   }      
-    //   const result = await userCollection.insertOne(user);
-    //   res.send({ success: true, result});
-    // });
     
 
     // find one item by id
@@ -188,6 +167,16 @@ async function run() {
       res.send({ success: true, result});
     });
 
+     //delete one product
+      // http://localhost:5000/product/id
+     app.delete("/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await productCollection.deleteOne(filter);  
+      res.send({message: "item deleted"})
+    });
+
+
 
     
 // ******************************
@@ -199,7 +188,7 @@ async function run() {
     app.get("/orders", async (req, res) => {
       const query = {};
       const result = await orderCollection.find(query).toArray();
-      res.send({ message: "all orders loaded", result});
+      res.send(result);
     });
     // get my orders
     // http://localhost:5000/orders/abdus@salam.com
@@ -261,7 +250,7 @@ async function run() {
 // ******************************
 
  // http://localhost:5000/reviews
- app.get("/reviews", verifyJWT,async (req, res) => {
+ app.get("/reviews", async (req, res) => {
   const query = {};
   const result = await reviewCollection.find(query).toArray();
   res.send(result);
