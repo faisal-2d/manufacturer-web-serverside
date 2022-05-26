@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const app = express();
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const stripe = require("stripe")('sk_test_51L2IafEwxTNKPPwRmynUXRjPJCDUP4fUluUqwjuIHemwhjO4jrir2ZGU7nDrtd7CItZ6qnEHIE9eH7n3a8QqLqvK00QCUgsluA');
 
 const port = process.env.PORT || 5000;
 
@@ -227,7 +228,27 @@ async function run() {
       res.send({ success: true, result});
     });
 
+    // pay one order
+    // http://localhost:5000/order/id
+    app.get("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await orderCollection.findOne(filter);
+      res.send(result);
+    });
 
+ // payment confirm order
+    // http://localhost:5000/admin/email
+    app.put("/admin/:email", async (req, res) => {      
+      const email = req.params.email;
+      const filter = {email : email};
+      const options = { upsert : true };
+      const updateUser = {
+        $set : {role : 'admin'},
+      }      
+      const result = await userCollection.updateOne(filter, updateUser, options);      
+      res.send({ success: true, result});
+    });
 
 
 
@@ -253,6 +274,26 @@ app.post("/review", async (req, res) => {
   const result = await reviewCollection.insertOne(review);
   res.send({ message: "review added", result});
 });
+
+
+//*********************** */
+// Payment
+//***************** */
+
+app.post("/create-payment-intent", async (req, res) => {
+  const { price } = req.body;
+  const amount = price*100;
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: amount,
+    currency: "usd",
+    payment_method_types: ['cards'],   
+  });
+  res.send({
+    clientSecret: paymentIntent.client_secret,
+  });
+
+})
 
 
 
