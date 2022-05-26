@@ -170,9 +170,17 @@ async function run() {
       const result = await productCollection.find(query).toArray();
       res.send(result);
     });
+    // get one product
+    // http://localhost:5000/product/628f2ffc78debc74680fc1fd
+    app.get("/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await productCollection.findOne(filter);
+      res.send(result);
+    });
 
     // create one product
-    // http://localhost:5000/item
+    // http://localhost:5000/product
     app.post("/product", async (req, res) => {
       const item = req.body;
       const result = await productCollection.insertOne(item);
@@ -191,6 +199,14 @@ async function run() {
       const query = {};
       const result = await orderCollection.find(query).toArray();
       res.send({ message: "all orders loaded", result});
+    });
+    // get my orders
+    // http://localhost:5000/orders/abdus@salam.com
+    app.get("/orders/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = {orderedBy: email};
+      const result = await orderCollection.find(query).toArray();
+      res.send(result);
     });
 
     
