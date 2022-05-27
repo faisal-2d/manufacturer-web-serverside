@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "postinstall": "ng build",
+  "scripts": {    
     "start": "node index.js",
     "start-dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
