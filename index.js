@@ -52,8 +52,8 @@ async function run() {
     // http://localhost:5000/users
     app.get("/users", async (req, res) => {
         const query = {};
-        const result = await userCollection.find(query).toArray();
-        res.send(result);
+        // const result = await userCollection.find(query).toArray();
+        res.send("result");
     });
 
     // create one user
