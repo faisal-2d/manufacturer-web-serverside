@@ -102,7 +102,7 @@ async function run() {
 
 // get all products
     // http://localhost:5000/products
-    app.get("/products", verifyJWT, async (req, res) => {
+    app.get("/products", async (req, res) => {
       const query = {};
       const result = await productCollection.find(query).toArray();
       res.send(result);
