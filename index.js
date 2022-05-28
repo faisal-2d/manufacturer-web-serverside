@@ -96,62 +96,20 @@ async function run() {
 
     
 
-    // find one item by id
-    // http://localhost:5000/item/6274a3425a04790168facc8c
-    app.get("/item/:id", async (req, res) => {
-      const id = req.params.id;
-      const filter = { _id: ObjectId(id) };
-      const result = await warehouseCollection.findOne(filter);
-      res.send(result);
-    });
-    // find one item by email
-    // http://localhost:5000/addedby/abdullah71faisal@gamil.com
-    app.get("/addedby/:email", async (req, res) => {
-      const email = req.params.email;
-      const filter = { addedby:email};
-      const result = await warehouseCollection.find(filter).toArray();
-      res.send(result);
-    });
-
-    
-    
-
-    //update item
-    // http://localhost:5000/item/6274a3425a04790168facc8c
-    app.put("/item/:id", async (req, res) => {
-      const id = req.params.id;
-      const filter = { _id: ObjectId(id) };
-      const updateItem = {        
-        $set: req.body,
-      };
-      const result = await warehouseCollection.updateOne(filter, updateItem);
-      res.send({success: true, result})
-    });
-
-    // delete item
-    // http://localhost:5000/item/6274a3425a04790168facc8c
-    app.delete("/item/:id", async (req, res) => {
-        const id = req.params.id;
-        const filter = { _id: ObjectId(id) };
-        const result = await warehouseCollection.deleteOne(filter);  
-        res.send({message: "item deleted"})
-      });
-
-
 // ******************************
 //     products 
 // ******************************
 
 // get all products
     // http://localhost:5000/products
-    app.get("/products", async (req, res) => {
+    app.get("/products", verifyJWT, async (req, res) => {
       const query = {};
       const result = await productCollection.find(query).toArray();
       res.send(result);
     });
     // get one product
     // http://localhost:5000/product/628f2ffc78debc74680fc1fd
-    app.get("/product/:id", async (req, res) => {
+    app.get("/product/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const result = await productCollection.findOne(filter);
@@ -184,14 +142,14 @@ async function run() {
 
 // get all orders
     // http://localhost:5000/orders
-    app.get("/orders", async (req, res) => {
+    app.get("/orders", verifyJWT, async (req, res) => {
       const query = {};
       const result = await orderCollection.find(query).toArray();
       res.send(result);
     });
     // get my orders
     // http://localhost:5000/orders/abdus@salam.com
-    app.get("/orders/:email", async (req, res) => {
+    app.get("/orders/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
       const query = {orderedBy: email};
       const result = await orderCollection.find(query).toArray();
@@ -257,7 +215,7 @@ async function run() {
 
 // create one review
 // http://localhost:5000/review
-app.post("/review", async (req, res) => {
+app.post("/review", verifyJWT, async (req, res) => {
   const review = req.body;
   const result = await reviewCollection.insertOne(review);
   res.send({ message: "review added", result});
