@@ -218,7 +218,7 @@ async function run() {
 
     // pay one order
     // http://localhost:5000/order/id
-    app.get("/order/:id", async (req, res) => {
+    app.get("/order/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const result = await orderCollection.findOne(filter);
@@ -295,10 +295,7 @@ run().catch(console.dir);
 app.get("/", (req, res) => {
   res.send("welcome to Solid Tools Corp");
 });
-// backend initialize
-app.get("/hello", (req, res) => {
-  res.send("hello to Solid Tools Corp");
-});
+
 
 app.listen(port, () => {
   console.log("Solid Tools Corp is running on Port", port);
