@@ -296,6 +296,10 @@ run().catch(console.dir);
 app.get("/", (req, res) => {
   res.send("welcome to Solid Tools Corp");
 });
+// backend initialize
+app.get("/hello", (req, res) => {
+  res.send("hello to Solid Tools Corp");
+});
 
 app.listen(port, () => {
   console.log("Solid Tools Corp is running on Port", port);
