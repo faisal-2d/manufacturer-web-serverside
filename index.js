@@ -142,7 +142,7 @@ async function run() {
 
 // get all orders
     // http://localhost:5000/orders
-    app.get("/orders", verifyJWT, async (req, res) => {
+    app.get("/orders", async (req, res) => {
       const query = {};
       const result = await orderCollection.find(query).toArray();
       res.send(result);
